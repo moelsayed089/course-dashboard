@@ -1,10 +1,4 @@
-interface FormFields {
-  name: string;
-  label: string;
-  type: string;
-  placeholder: string;
-}
-export const formFields: FormFields[] = [
+export const formFields = [
   {
     name: "name",
     label: "Course Name",

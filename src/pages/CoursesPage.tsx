@@ -8,41 +8,53 @@ import { toast } from "react-toastify";
 import { formFields } from "../data/felids";
 import validationSchema from "../validation";
 
+// Define FormValues to match Course
 type FormValues = {
   id: string;
   name: string;
   description: string;
-  price: string;
+  price: number;
   thumbnail: string;
   startDate: string;
   endDate: string;
 };
 
+// Define type for formFields (more flexible to handle string names)
+interface FormField {
+  name: string; // Changed to string to match formFields
+  label: string;
+  type: string;
+  placeholder: string;
+}
+
 const CoursesPage = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [courses, setCourses] = useState(() => {
+  const [courses, setCourses] = useState<Course[]>(() => {
     const savedCourses = localStorage.getItem("courses");
     return savedCourses ? JSON.parse(savedCourses) : mockCourses;
   });
-  const [editingCourse, setEditingCourse] = useState(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   const toggleModal = (state: boolean) => {
     setIsOpen(state);
     if (!state) setEditingCourse(null);
   };
 
-  const handleSubmit = (values: Course) => {
-    let updatedCourses;
+  const handleSubmit = (values: FormValues) => {
+    const courseData: Course = {
+      ...values,
+      price: Number(values.price), // Ensure price is a number
+    };
+
+    let updatedCourses: Course[];
     if (editingCourse) {
-      updatedCourses = courses.map((course: Course) =>
-        course.id === editingCourse.id
-          ? { ...values, id: editingCourse.id }
-          : course
+      updatedCourses = courses.map((course) =>
+        course.id === editingCourse.id ? courseData : course
       );
       toast.success("Course updated successfully");
     } else {
       const newId = crypto.randomUUID();
-      updatedCourses = [...courses, { ...values, id: newId }];
+      updatedCourses = [...courses, { ...courseData, id: newId }];
       toast.success("Course created successfully");
     }
     setCourses(updatedCourses);
@@ -55,18 +67,18 @@ const CoursesPage = () => {
       id: "",
       name: "",
       description: "",
-      price: "",
+      price: 0,
       thumbnail: "",
       startDate: "",
       endDate: "",
     },
     enableReinitialize: true,
-    validationSchema: validationSchema,
+    validationSchema,
     onSubmit: handleSubmit,
   });
 
   const handleEdit = (id: string) => {
-    const courseToEdit = courses.find((course: Course) => course.id === id);
+    const courseToEdit = courses.find((course) => course.id === id);
     if (courseToEdit) {
       setEditingCourse(courseToEdit);
       toggleModal(true);
@@ -78,9 +90,7 @@ const CoursesPage = () => {
       "Are you sure you want to delete this course?"
     );
     if (confirmed) {
-      const updatedCourses = courses.filter(
-        (course: Course) => course.id !== id
-      );
+      const updatedCourses = courses.filter((course) => course.id !== id);
       setCourses(updatedCourses);
       localStorage.setItem("courses", JSON.stringify(updatedCourses));
       toast.success("Course deleted successfully");
@@ -105,18 +115,19 @@ const CoursesPage = () => {
             title={editingCourse ? "Edit Course" : "Create New Course"}
           >
             <form className="space-y-3" onSubmit={objForm.handleSubmit}>
-              {formFields.map((field) => (
+              {formFields.map((field: FormField) => (
                 <Inputs
                   key={field.name}
                   name={field.name}
                   onChange={objForm.handleChange}
-                  value={objForm.values[field.name]}
+                  value={objForm.values[field.name as keyof FormValues]}
                   id={field.name}
                   label={field.label}
                   type={field.type}
                   placeholder={field.placeholder}
                   error={
-                    objForm.touched[field.name] && objForm.errors[field.name]
+                    objForm.touched[field.name as keyof FormValues] &&
+                    (objForm.errors[field.name as keyof FormValues] as string)
                   }
                 />
               ))}
