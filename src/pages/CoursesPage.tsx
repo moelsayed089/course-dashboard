@@ -19,9 +19,8 @@ type FormValues = {
   endDate: string;
 };
 
-// Define type for formFields (more flexible to handle string names)
 interface FormField {
-  name: string; // Changed to string to match formFields
+  name: string;
   label: string;
   type: string;
   placeholder: string;
@@ -43,7 +42,7 @@ const CoursesPage = () => {
   const handleSubmit = (values: FormValues) => {
     const courseData: Course = {
       ...values,
-      price: Number(values.price), // Ensure price is a number
+      price: Number(values.price),
     };
 
     let updatedCourses: Course[];
@@ -104,7 +103,7 @@ const CoursesPage = () => {
           <h2 className="text-3xl font-extrabold text-gray-900">Courses</h2>
           <button
             onClick={() => toggleModal(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-4 py-2 bg-indigo-300 text-white rounded-md hover:bg-indigo-500"
           >
             Add New Course
           </button>
